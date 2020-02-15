@@ -4,7 +4,66 @@ Puts some sugar onto Sentry.
 
 Send issues easily with Data and special Scope from one method. 
 
-# Setup
+Convert the `console.error`, `console.warn` etc.. to Sentry Issues.
+
+# Setup to Convert consoles to issues
+
+This is only what is needed.
+
+```
+// Initialize the Sentry as you do
+import * as Sentry from '@sentry/browser';
+Sentry.init({
+  dsn: "https://<your sentry link>",
+});
+
+// Instantiate the DynaSentry
+import {DynaSentry, EConsoleTypes} from "dyna-sentry";
+const dynaSentry = new DynaSentry({
+    Sentry,
+    captureConsole: {
+        consoleTypes: [
+            EConsoleTypes.ERROR,
+            EConsoleTypes.WARN,
+            // LOG, INFO, DEBUG are also available
+        ],
+    },
+});
+
+```
+
+Whenever your app `console.error` or `console.warn` an issue will be sent to entry.
+
+The first argument of the console is used as the Title of the issue and all the rest as Additional Data.
+
+You can filter out consoles to not send them to Sentry. _This is needed when you send the Logs also, since Sentry is consoling the POST for each sent issue._
+
+Check out this DynaSentry setup.
+
+```
+// Instantiate the DynaSentry
+import {DynaSentry, EConsoleTypes} from "dyna-sentry";
+const dynaSentry = new DynaSentry({
+    Sentry,
+    captureConsole: {
+        consoleTypes: [
+            EConsoleTypes.ERROR,
+            EConsoleTypes.WARN,
+            // LOG, INFO, DEBUG are also available
+        ],
+        filter: (consoleType, consoleArgs) => {
+            const text = consoleArgs[0];
+            if (text.indeOf('invalid customer id') return false;
+            return true;
+        },
+    },
+});
+
+```
+
+# Setup to Send issues manually
+
+You can both `sendIssues` with the same setup to Convert consoles to issues.
 
 ```
 // Initialize the Sentry as you do
@@ -57,11 +116,9 @@ enum ELevel {
 }
 ```
 
-## Send a issue without stringify
+## Send a issue's data stringified
 
-Be default sendIssue stringifies the data in order to get the full version of the object. 
-
-If the issued objects are too big you car reduce them disabling the stringify.
+When you stringify the data, you can see the whole depth of the object on Sentry.
 
 > **Tip:** The data stringify of the `sendIssue` can process objects with circular references with out exceptions, thanks to [dyna-stringify](https://github.com/aneldev/).
 
@@ -69,7 +126,7 @@ If the issued objects are too big you car reduce them disabling the stringify.
 dynaSentry.sendIssue({
     title: 'Cannot send email',
     data: {email},
-    stringifyData: false,
+    stringifyData: true,
 });
 ```
 
@@ -174,3 +231,58 @@ export interface Scope {
     clearBreadcrumbs(): this;
 }
 ``` 
+
+# API
+
+## DynaSentry config
+
+Config for `new DynaSentry(config: IDynaSentryConfig)`.
+
+```
+IDynaSentryConfig {
+  Sentry: Sentry;
+  captureConsole?: {
+    consoleTypes?: EConsoleType[];  // default: empty (none)
+    stringify?: boolean;            // default: false
+    filter?: (consoleType: EConsoleType, consoleArgs: any[]) => boolean;
+  };
+}
+```
+
+## method `sendIssue`
+```
+public sendIssue(
+    options: {
+        title: string;
+        level?: ELevel;
+        data?: any;
+        stringifyData?: boolean;    // default: false
+        setScope?: (scope: Sentry.Scope) => void;
+    }
+): void
+```
+
+## enum EConsoleType
+```
+export enum EConsoleType {
+  ERROR = 'error',
+  WARN = 'warn',
+  LOG = 'log',
+  INFO = 'info',
+  DEBUG = 'debug',
+}
+```
+## enum ELevel
+```
+export enum ELevel {
+  FATAL = "fatal",
+  ERROR = "error",
+  WARN = "warning",
+  LOG = "log",
+  INFO = "info",
+  DEBUG = "debug",
+  CRITICAL = "critical"
+}```
+
+## 
+

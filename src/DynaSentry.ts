@@ -1,8 +1,23 @@
 import Sentry from '@sentry/browser';
 import {dynaStringify} from "dyna-stringify";
+import {stringify} from "querystring";
 
 export interface IDynaSentryConfig {
   Sentry: any;
+  captureConsole?: {
+    consoleTypes?: EConsoleType[];  // default: empty (none)
+    stringifyData?: boolean;        // default: false
+    filter?: (consoleType: EConsoleType, consoleArgs: any[]) => boolean;
+    setScope?: (scope: Sentry.Scope) => void;
+  };
+}
+
+export enum EConsoleType {
+  ERROR = 'error',
+  WARN = 'warn',
+  LOG = 'log',
+  INFO = 'info',
+  DEBUG = 'debug',
 }
 
 export enum ELevel {
@@ -21,6 +36,7 @@ export class DynaSentry {
 
   constructor(private readonly config: IDynaSentryConfig) {
     this.sentry = config.Sentry;
+    this.initSniffConsoles();
   }
 
   public sendIssue(
@@ -31,10 +47,10 @@ export class DynaSentry {
       stringifyData = true,
       setScope,
     }: {
-      title: string,
-      level?: ELevel,
-      data?: any,
-      stringifyData?: boolean,
+      title: string;
+      level?: ELevel;
+      data?: any;
+      stringifyData?: boolean;
       setScope?: (scope: Sentry.Scope) => void;
     }
   ): void {
@@ -51,5 +67,48 @@ export class DynaSentry {
       scope.setLevel(level as any);
       this.sentry.captureMessage(title);
     });
+  }
+
+  // private
+
+  private originalConsoles: { [consoleType: string]: any } = {};
+
+  private initSniffConsoles(): void {
+    const {
+      captureConsole = {},
+    } = this.config;
+    const {
+      consoleTypes = [],
+      filter = () => true,
+      stringifyData = false,
+      setScope,
+    } = captureConsole;
+    consoleTypes
+      .forEach(consoleType => {
+        this.originalConsoles[consoleType] = console[consoleType];
+        console[consoleType] = (...args: any[]) => {
+          this.originalConsoles[consoleType](...args);
+          if (filter(consoleType, args)) {
+            this.sendIssue({
+              title: (() => {
+                if (typeof args[0] === 'string') return args[0];
+                return `Console Object: ${dynaStringify(args[0])}`;
+              })(),
+              level: (() => {
+                if (consoleType === EConsoleType.WARN) return ELevel.WARN as any;
+                return consoleType;
+              })(),
+              data: args
+                .slice(1)
+                .reduce((acc, arg, index) => {
+                  acc[`console-arg-${index}`] = arg;
+                  return acc;
+                }, {}),
+              stringifyData,
+              setScope,
+            });
+          }
+        };
+      });
   }
 }

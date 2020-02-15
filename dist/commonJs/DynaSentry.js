@@ -1,6 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var dyna_stringify_1 = require("dyna-stringify");
+var EConsoleType;
+(function (EConsoleType) {
+    EConsoleType["ERROR"] = "error";
+    EConsoleType["WARN"] = "warn";
+    EConsoleType["LOG"] = "log";
+    EConsoleType["INFO"] = "info";
+    EConsoleType["DEBUG"] = "debug";
+})(EConsoleType = exports.EConsoleType || (exports.EConsoleType = {}));
 var ELevel;
 (function (ELevel) {
     ELevel["FATAL"] = "fatal";
@@ -14,7 +22,10 @@ var ELevel;
 var DynaSentry = /** @class */ (function () {
     function DynaSentry(config) {
         this.config = config;
+        // private
+        this.originalConsoles = {};
         this.sentry = config.Sentry;
+        this.initSniffConsoles();
     }
     DynaSentry.prototype.sendIssue = function (_a) {
         var _this = this;
@@ -29,6 +40,45 @@ var DynaSentry = /** @class */ (function () {
             });
             scope.setLevel(level);
             _this.sentry.captureMessage(title);
+        });
+    };
+    DynaSentry.prototype.initSniffConsoles = function () {
+        var _this = this;
+        var _a = this.config.captureConsole, captureConsole = _a === void 0 ? {} : _a;
+        var _b = captureConsole.consoleTypes, consoleTypes = _b === void 0 ? [] : _b, _c = captureConsole.filter, filter = _c === void 0 ? function () { return true; } : _c, _d = captureConsole.stringifyData, stringifyData = _d === void 0 ? false : _d, setScope = captureConsole.setScope;
+        consoleTypes
+            .forEach(function (consoleType) {
+            _this.originalConsoles[consoleType] = console[consoleType];
+            console[consoleType] = function () {
+                var _a;
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                (_a = _this.originalConsoles)[consoleType].apply(_a, args);
+                if (filter(consoleType, args)) {
+                    _this.sendIssue({
+                        title: (function () {
+                            if (typeof args[0] === 'string')
+                                return args[0];
+                            return "Console Object: " + dyna_stringify_1.dynaStringify(args[0]);
+                        })(),
+                        level: (function () {
+                            if (consoleType === EConsoleType.WARN)
+                                return ELevel.WARN;
+                            return consoleType;
+                        })(),
+                        data: args
+                            .slice(1)
+                            .reduce(function (acc, arg, index) {
+                            acc["console-arg-" + index] = arg;
+                            return acc;
+                        }, {}),
+                        stringifyData: stringifyData,
+                        setScope: setScope,
+                    });
+                }
+            };
         });
     };
     return DynaSentry;

@@ -1,6 +1,19 @@
 import Sentry from '@sentry/browser';
 export interface IDynaSentryConfig {
     Sentry: any;
+    captureConsole?: {
+        consoleTypes?: EConsoleType[];
+        stringifyData?: boolean;
+        filter?: (consoleType: EConsoleType, consoleArgs: any[]) => boolean;
+        setScope?: (scope: Sentry.Scope) => void;
+    };
+}
+export declare enum EConsoleType {
+    ERROR = "error",
+    WARN = "warn",
+    LOG = "log",
+    INFO = "info",
+    DEBUG = "debug"
 }
 export declare enum ELevel {
     FATAL = "fatal",
@@ -22,4 +35,6 @@ export declare class DynaSentry {
         stringifyData?: boolean;
         setScope?: (scope: Sentry.Scope) => void;
     }): void;
+    private originalConsoles;
+    private initSniffConsoles;
 }
