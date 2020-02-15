@@ -1,4 +1,4 @@
-import Sentry from '@sentry/browser';
+import * as Sentry from '@sentry/browser';
 import {dynaStringify} from "dyna-stringify";
 import {stringify} from "querystring";
 
