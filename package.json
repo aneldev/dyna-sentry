@@ -1,10 +1,10 @@
 {
   "name": "dyna-sentry",
-  "version": "0.0.1",
-  "description": "The dyna-sentry",
+  "version": "1.0.1",
+  "description": "A dyna sugar on Sentry",
   "repository": {
     "type": "git",
-    "url": "http://github.com/YOUR_ACCOUNT/dyna-sentry"
+    "url": "http://github.com/aneldev/dyna-sentry"
   },
   "sideEffects": false,
   "source": "src/index.ts",
