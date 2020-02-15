@@ -1,1 +1,1 @@
-export { Person, IPerson, } from "./person/Person";
+export { DynaSentry, ELevel, } from "./DynaSentry";
