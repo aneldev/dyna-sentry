@@ -1,1 +1,1 @@
-export { DynaSentry, ELevel, } from "./DynaSentry";
+export { DynaSentry, ELevel, EConsoleType, } from "./DynaSentry";
