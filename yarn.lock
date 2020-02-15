@@ -3274,6 +3274,11 @@ dyna-node-console@^1.0.7:
   dependencies:
     chalk "^2.4.1"
 
+dyna-stringify@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/dyna-stringify/-/dyna-stringify-1.0.3.tgz#9566e449f5e3e3976fa2c17f3ffcb2e205151233"
+  integrity sha512-HKURdVbc8+PoPvxMTddtNr/tOFZaGQFUDpTMHs1JEnTeDmuR+X/fkeVelMvPOMl4eocgdzhC1x1tQ8oplKDFAA==
+
 ecc-jsbn@~0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz#3a83a904e54353287874c564b7549386849a98c9"

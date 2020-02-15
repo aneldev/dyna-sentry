@@ -1,3 +1,7 @@
+import Sentry from '@sentry/browser';
+export interface IDynaSentryConfig {
+    Sentry: any;
+}
 export declare enum ELevel {
     FATAL = "fatal",
     ERROR = "error",
@@ -8,12 +12,14 @@ export declare enum ELevel {
     CRITICAL = "critical"
 }
 export declare class DynaSentry {
+    private readonly config;
     private sentry;
-    constructor(sentry: any);
-    sendIssue({ title, level, data, stringifyData, }: {
+    constructor(config: IDynaSentryConfig);
+    sendIssue({ title, level, data, stringifyData, setScope, }: {
         title: string;
         level?: ELevel;
         data?: any;
         stringifyData?: boolean;
+        setScope?: (scope: Sentry.Scope) => void;
     }): void;
 }

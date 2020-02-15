@@ -1,4 +1,9 @@
 import Sentry from '@sentry/browser';
+import {dynaStringify} from "dyna-stringify";
+
+export interface IDynaSentryConfig {
+  Sentry: any;
+}
 
 export enum ELevel {
   FATAL = "fatal",
@@ -13,8 +18,9 @@ export enum ELevel {
 export class DynaSentry {
   // @ts-ignore
   private sentry: Sentry;
-  constructor(sentry: any) {
-    this.sentry = sentry;
+
+  constructor(private readonly config: IDynaSentryConfig) {
+    this.sentry = config.Sentry;
   }
 
   public sendIssue(
@@ -23,19 +29,22 @@ export class DynaSentry {
       level = ELevel.ERROR,
       data,
       stringifyData = true,
+      setScope,
     }: {
       title: string,
       level?: ELevel,
       data?: any,
       stringifyData?: boolean,
+      setScope?: (scope: Sentry.Scope) => void;
     }
   ): void {
     this.sentry.withScope((scope: Sentry.Scope) => {
+      if (setScope) setScope(scope);
       Object.keys(data).forEach((key: string) => {
         scope.setExtra(
           key,
           stringifyData
-            ? JSON.stringify(data[key], null, 2)
+            ? dynaStringify(data[key], {spaces: 1})
             : data[key],
         );
       });
