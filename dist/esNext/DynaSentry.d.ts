@@ -1,4 +1,4 @@
-import Sentry from '@sentry/browser';
+import * as Sentry from '@sentry/browser';
 export interface IDynaSentryConfig {
     Sentry: any;
     captureConsole?: {
