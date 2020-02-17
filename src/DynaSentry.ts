@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/browser';
 import {dynaStringify} from "dyna-stringify";
-import {stringify} from "querystring";
+import {consoleSplit} from "./consoleSplit";
 
 export interface IDynaSentryConfig {
   Sentry: any;
@@ -89,19 +89,19 @@ export class DynaSentry {
         console[consoleType] = (...args: any[]) => {
           this.originalConsoles[consoleType](...args);
           if (filter(consoleType, args)) {
+            const consoleContent = consoleSplit(args);
             this.sendIssue({
               title: (() => {
-                if (typeof args[0] === 'string') return args[0];
+                if (consoleContent.text) return consoleContent.text;
                 return `Console Object: ${dynaStringify(args[0])}`;
               })(),
               level: (() => {
                 if (consoleType === EConsoleType.WARN) return ELevel.WARN as any;
                 return consoleType;
               })(),
-              data: args
-                .slice(1)
+              data: consoleContent.restArgs
                 .reduce((acc, arg, index) => {
-                  acc[`console-arg-${index}`] = arg;
+                  acc[`console-arg-${index + consoleContent.restArgIndex}`] = arg;
                   return acc;
                 }, {}),
               stringifyData,

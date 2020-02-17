@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var dyna_stringify_1 = require("dyna-stringify");
+var consoleSplit_1 = require("./consoleSplit");
 var EConsoleType;
 (function (EConsoleType) {
     EConsoleType["ERROR"] = "error";
@@ -57,10 +58,11 @@ var DynaSentry = /** @class */ (function () {
                 }
                 (_a = _this.originalConsoles)[consoleType].apply(_a, args);
                 if (filter(consoleType, args)) {
+                    var consoleContent_1 = consoleSplit_1.consoleSplit(args);
                     _this.sendIssue({
                         title: (function () {
-                            if (typeof args[0] === 'string')
-                                return args[0];
+                            if (consoleContent_1.text)
+                                return consoleContent_1.text;
                             return "Console Object: " + dyna_stringify_1.dynaStringify(args[0]);
                         })(),
                         level: (function () {
@@ -68,10 +70,9 @@ var DynaSentry = /** @class */ (function () {
                                 return ELevel.WARN;
                             return consoleType;
                         })(),
-                        data: args
-                            .slice(1)
+                        data: consoleContent_1.restArgs
                             .reduce(function (acc, arg, index) {
-                            acc["console-arg-" + index] = arg;
+                            acc["console-arg-" + (index + consoleContent_1.restArgIndex)] = arg;
                             return acc;
                         }, {}),
                         stringifyData: stringifyData,
