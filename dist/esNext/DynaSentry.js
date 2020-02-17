@@ -1,4 +1,5 @@
 import { dynaStringify } from "dyna-stringify";
+import { consoleSplit } from "./consoleSplit";
 export var EConsoleType;
 (function (EConsoleType) {
     EConsoleType["ERROR"] = "error";
@@ -55,10 +56,11 @@ var DynaSentry = /** @class */ (function () {
                 }
                 (_a = _this.originalConsoles)[consoleType].apply(_a, args);
                 if (filter(consoleType, args)) {
+                    var consoleContent_1 = consoleSplit(args);
                     _this.sendIssue({
                         title: (function () {
-                            if (typeof args[0] === 'string')
-                                return args[0];
+                            if (consoleContent_1.text)
+                                return consoleContent_1.text;
                             return "Console Object: " + dynaStringify(args[0]);
                         })(),
                         level: (function () {
@@ -66,10 +68,9 @@ var DynaSentry = /** @class */ (function () {
                                 return ELevel.WARN;
                             return consoleType;
                         })(),
-                        data: args
-                            .slice(1)
+                        data: consoleContent_1.restArgs
                             .reduce(function (acc, arg, index) {
-                            acc["console-arg-" + index] = arg;
+                            acc["console-arg-" + (index + consoleContent_1.restArgIndex)] = arg;
                             return acc;
                         }, {}),
                         stringifyData: stringifyData,
