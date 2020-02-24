@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var FilterOut = /** @class */ (function () {
     function FilterOut(config) {
         this.config = config;
@@ -18,5 +16,5 @@ var FilterOut = /** @class */ (function () {
     };
     return FilterOut;
 }());
-exports.FilterOut = FilterOut;
+export { FilterOut };
 //# sourceMappingURL=FilterOut.js.map
