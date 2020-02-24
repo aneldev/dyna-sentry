@@ -1,13 +1,15 @@
 import * as Sentry from '@sentry/browser';
 import {dynaStringify} from "dyna-stringify";
-import {consoleSplit} from "./consoleSplit";
+import {consoleSplit} from "./utils/consoleSplit";
+import {IFilterOut, FilterOut} from "./utils/FilterOut";
 
 export interface IDynaSentryConfig {
   Sentry: any;
   captureConsole?: {
     consoleTypes?: EConsoleType[];  // default: empty (none)
     stringifyData?: boolean;        // default: false
-    filter?: (consoleType: EConsoleType, consoleArgs: any[]) => boolean;
+    filter?: (consoleType: EConsoleType, consoleArgs: any[], consoleText: string) => boolean;
+    filterOut?: IFilterOut;
     setScope?: (scope: Sentry.Scope) => void;
   };
 }
@@ -32,10 +34,14 @@ export enum ELevel {
 
 export class DynaSentry {
   // @ts-ignore
-  private sentry: Sentry;
+  private readonly sentry: Sentry;
+  private readonly filterOut: FilterOut | null = null;
 
   constructor(private readonly config: IDynaSentryConfig) {
     this.sentry = config.Sentry;
+    if (config.captureConsole && config.captureConsole.filterOut) {
+      this.filterOut = new FilterOut(config.captureConsole.filterOut);
+    }
     this.initSniffConsoles();
   }
 
@@ -79,7 +85,6 @@ export class DynaSentry {
     } = this.config;
     const {
       consoleTypes = [],
-      filter = () => true,
       stringifyData = false,
       setScope,
     } = captureConsole;
@@ -88,8 +93,8 @@ export class DynaSentry {
         this.originalConsoles[consoleType] = console[consoleType];
         console[consoleType] = (...args: any[]) => {
           this.originalConsoles[consoleType](...args);
-          if (filter(consoleType, args)) {
-            const consoleContent = consoleSplit(args);
+          const consoleContent = consoleSplit(args);
+          if (this.filter(consoleType, args, consoleContent.text)) {
             this.sendIssue({
               title: (() => {
                 if (consoleContent.text) return consoleContent.text;
@@ -110,5 +115,25 @@ export class DynaSentry {
           }
         };
       });
+  }
+
+  private filter(consoleType: EConsoleType, args: any, consoleText: string): boolean {
+    const {
+      captureConsole = {},
+    } = this.config;
+    const {
+      filter,
+    } = captureConsole;
+
+    return (
+      (
+        !filter
+        || filter(consoleType, args, consoleText)
+      )
+      && (
+        !this.filterOut
+        || this.filterOut.filter(consoleText)
+      )
+    );
   }
 }

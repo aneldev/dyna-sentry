@@ -34,14 +34,13 @@ const dynaSentry = new DynaSentry({
 
 Whenever your app `console.error` or `console.warn` an issue will be sent to entry.
 
-The first argument of the console is used as the Title of the issue and all the rest as Additional Data.
+The first text arguments of the console are used as the Title of the issue and all the rest as Additional Data.
+
+# Filter consoles
 
 You can filter out consoles to not send them to Sentry. _This is needed when you send the Logs also, since Sentry is consoling the POST for each sent issue._
 
-Check out this DynaSentry setup.
-
 ```
-// Instantiate the DynaSentry
 import {DynaSentry, EConsoleTypes} from "dyna-sentry";
 const dynaSentry = new DynaSentry({
     Sentry,
@@ -51,9 +50,8 @@ const dynaSentry = new DynaSentry({
             EConsoleTypes.WARN,
             // LOG, INFO, DEBUG are also available
         ],
-        filter: (consoleType, consoleArgs) => {
-            const text = consoleArgs[0];
-            if (text.indeOf('invalid customer id') return false;
+        filter: (consoleType, consoleArgs, consoleText) => {
+            if (consoleText.indeOf('invalid customer id') return false;
             return true;
         },
     },
@@ -61,9 +59,32 @@ const dynaSentry = new DynaSentry({
 
 ```
 
-# Setup to Send issues manually
+# Filter out easily consoles with texts
 
-You can both `sendIssues` with the same setup to Convert consoles to issues.
+You can filter out consoles to not send them to Sentry. _This is needed when you send the Logs also, since Sentry is consoling the POST for each sent issue._
+
+```
+import {DynaSentry, EConsoleTypes} from "dyna-sentry";
+const dynaSentry = new DynaSentry({
+    Sentry,
+    captureConsole: {
+        consoleTypes: [
+            EConsoleTypes.ERROR,
+            EConsoleTypes.WARN,
+            // LOG, INFO, DEBUG are also available
+        ],
+        filterOut: {
+            texts: [
+                "DEBUG-3052",
+                "[Violation]",
+            ],
+        },
+    },
+});
+
+```
+
+# Setup to Send issues manually
 
 ```
 // Initialize the Sentry as you do
@@ -82,6 +103,7 @@ dynaSentry.sendIssue({
     data: {email},
 });
 ```
+> Note: You can use `sendIssues` with or without `captureConsole` setup.
 
 # Send issue method `sendIssue`
 
@@ -102,7 +124,7 @@ dynaSentry.sendIssue({
 });
 ```
 
-The Enum
+The `ELevel` Enum
 
 ```
 enum ELevel {
@@ -240,26 +262,26 @@ Config for `new DynaSentry(config: IDynaSentryConfig)`.
 
 ```
 IDynaSentryConfig {
-  Sentry: Sentry;
+  Sentry: any;
   captureConsole?: {
     consoleTypes?: EConsoleType[];  // default: empty (none)
-    stringify?: boolean;            // default: false
-    filter?: (consoleType: EConsoleType, consoleArgs: any[]) => boolean;
+    stringifyData?: boolean;        // default: false
+    filter?: (consoleType: EConsoleType, consoleArgs: any[], consoleText: string) => boolean;
+    filterOut?: IFilterOut;
+    setScope?: (scope: Sentry.Scope) => void;
   };
 }
 ```
 
 ## method `sendIssue`
 ```
-public sendIssue(
-    options: {
-        title: string;
-        level?: ELevel;
-        data?: any;
-        stringifyData?: boolean;    // default: false
-        setScope?: (scope: Sentry.Scope) => void;
-    }
-): void
+public sendIssue(options: {
+    title: string;
+    level?: ELevel;
+    data?: any;
+    stringifyData?: boolean;    // default: false
+    setScope?: (scope: Sentry.Scope) => void;
+}): void
 ```
 
 ## enum EConsoleType

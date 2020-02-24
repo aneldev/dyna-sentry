@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var dyna_stringify_1 = require("dyna-stringify");
-var consoleSplit_1 = require("./consoleSplit");
+var consoleSplit_1 = require("./utils/consoleSplit");
+var FilterOut_1 = require("./utils/FilterOut");
 var EConsoleType;
 (function (EConsoleType) {
     EConsoleType["ERROR"] = "error";
@@ -23,9 +24,13 @@ var ELevel;
 var DynaSentry = /** @class */ (function () {
     function DynaSentry(config) {
         this.config = config;
+        this.filterOut = null;
         // private
         this.originalConsoles = {};
         this.sentry = config.Sentry;
+        if (config.captureConsole && config.captureConsole.filterOut) {
+            this.filterOut = new FilterOut_1.FilterOut(config.captureConsole.filterOut);
+        }
         this.initSniffConsoles();
     }
     DynaSentry.prototype.sendIssue = function (_a) {
@@ -46,7 +51,7 @@ var DynaSentry = /** @class */ (function () {
     DynaSentry.prototype.initSniffConsoles = function () {
         var _this = this;
         var _a = this.config.captureConsole, captureConsole = _a === void 0 ? {} : _a;
-        var _b = captureConsole.consoleTypes, consoleTypes = _b === void 0 ? [] : _b, _c = captureConsole.filter, filter = _c === void 0 ? function () { return true; } : _c, _d = captureConsole.stringifyData, stringifyData = _d === void 0 ? false : _d, setScope = captureConsole.setScope;
+        var _b = captureConsole.consoleTypes, consoleTypes = _b === void 0 ? [] : _b, _c = captureConsole.stringifyData, stringifyData = _c === void 0 ? false : _c, setScope = captureConsole.setScope;
         consoleTypes
             .forEach(function (consoleType) {
             _this.originalConsoles[consoleType] = console[consoleType];
@@ -57,12 +62,12 @@ var DynaSentry = /** @class */ (function () {
                     args[_i] = arguments[_i];
                 }
                 (_a = _this.originalConsoles)[consoleType].apply(_a, args);
-                if (filter(consoleType, args)) {
-                    var consoleContent_1 = consoleSplit_1.consoleSplit(args);
+                var consoleContent = consoleSplit_1.consoleSplit(args);
+                if (_this.filter(consoleType, args, consoleContent.text)) {
                     _this.sendIssue({
                         title: (function () {
-                            if (consoleContent_1.text)
-                                return consoleContent_1.text;
+                            if (consoleContent.text)
+                                return consoleContent.text;
                             return "Console Object: " + dyna_stringify_1.dynaStringify(args[0]);
                         })(),
                         level: (function () {
@@ -70,9 +75,9 @@ var DynaSentry = /** @class */ (function () {
                                 return ELevel.WARN;
                             return consoleType;
                         })(),
-                        data: consoleContent_1.restArgs
+                        data: consoleContent.restArgs
                             .reduce(function (acc, arg, index) {
-                            acc["console-arg-" + (index + consoleContent_1.restArgIndex)] = arg;
+                            acc["console-arg-" + (index + consoleContent.restArgIndex)] = arg;
                             return acc;
                         }, {}),
                         stringifyData: stringifyData,
@@ -81,6 +86,14 @@ var DynaSentry = /** @class */ (function () {
                 }
             };
         });
+    };
+    DynaSentry.prototype.filter = function (consoleType, args, consoleText) {
+        var _a = this.config.captureConsole, captureConsole = _a === void 0 ? {} : _a;
+        var filter = captureConsole.filter;
+        return ((!filter
+            || filter(consoleType, args, consoleText))
+            && (!this.filterOut
+                || this.filterOut.filter(consoleText)));
     };
     return DynaSentry;
 }());
