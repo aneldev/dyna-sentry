@@ -1,11 +1,8 @@
-import "jest";
+// Help: https://facebook.github.io/jest/docs/expect.html
+import {sayHelloWorld} from "../../src";
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 4000;
-
-// help: https://facebook.github.io/jest/docs/expect.html
-
-describe('Test sample', () => {
-  it('Calcs', () => {
-    expect(1 + 1).toBe(2);
+describe('Unit test', () => {
+  it('Sample', () => {
+    expect(typeof sayHelloWorld).toBe('function');
   });
 });

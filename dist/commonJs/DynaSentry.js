@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DynaSentry = exports.ELevel = exports.EConsoleType = void 0;
 var dyna_stringify_1 = require("dyna-stringify");
 var consoleSplit_1 = require("./utils/consoleSplit");
 var FilterOut_1 = require("./utils/FilterOut");
@@ -25,7 +26,7 @@ var DynaSentry = /** @class */ (function () {
     function DynaSentry(config) {
         this.config = config;
         this.filterOut = null;
-        // private
+        // Private
         this.originalConsoles = {};
         this.sentry = config.Sentry;
         if (config.captureConsole && config.captureConsole.filterOut) {
@@ -41,7 +42,7 @@ var DynaSentry = /** @class */ (function () {
                 setScope(scope);
             Object.keys(data).forEach(function (key) {
                 scope.setExtra(key, stringifyData
-                    ? dyna_stringify_1.dynaStringify(data[key], { spaces: 1 })
+                    ? (0, dyna_stringify_1.dynaStringify)(data[key], { spaces: 1 })
                     : data[key]);
             });
             scope.setLevel(level);
@@ -54,7 +55,7 @@ var DynaSentry = /** @class */ (function () {
         var _b = captureConsole.consoleTypes, consoleTypes = _b === void 0 ? [] : _b, _c = captureConsole.stringifyData, stringifyData = _c === void 0 ? false : _c, setScope = captureConsole.setScope;
         consoleTypes
             .forEach(function (consoleType) {
-            _this.originalConsoles[consoleType] = console[consoleType];
+            _this.originalConsoles[consoleType] = console[consoleType]; // eslint-disable-line no-console
             console[consoleType] = function () {
                 var _a;
                 var args = [];
@@ -62,13 +63,13 @@ var DynaSentry = /** @class */ (function () {
                     args[_i] = arguments[_i];
                 }
                 (_a = _this.originalConsoles)[consoleType].apply(_a, args);
-                var consoleContent = consoleSplit_1.consoleSplit(args);
+                var consoleContent = (0, consoleSplit_1.consoleSplit)(args);
                 if (_this.filter(consoleType, args, consoleContent.text)) {
                     _this.sendIssue({
                         title: (function () {
                             if (consoleContent.text)
                                 return consoleContent.text;
-                            return "Console Object: " + dyna_stringify_1.dynaStringify(args[0]);
+                            return "Console Object: ".concat((0, dyna_stringify_1.dynaStringify)(args[0]));
                         })(),
                         level: (function () {
                             if (consoleType === EConsoleType.WARN)
@@ -77,7 +78,7 @@ var DynaSentry = /** @class */ (function () {
                         })(),
                         data: consoleContent.restArgs
                             .reduce(function (acc, arg, index) {
-                            acc["console-arg-" + (index + consoleContent.restArgIndex)] = arg;
+                            acc["console-arg-".concat(index + consoleContent.restArgIndex)] = arg;
                             return acc;
                         }, {}),
                         stringifyData: stringifyData,

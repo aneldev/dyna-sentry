@@ -1,6 +1,6 @@
 import { dynaStringify } from "dyna-stringify";
 import { consoleSplit } from "./utils/consoleSplit";
-import { FilterOut } from "./utils/FilterOut";
+import { FilterOut, } from "./utils/FilterOut";
 export var EConsoleType;
 (function (EConsoleType) {
     EConsoleType["ERROR"] = "error";
@@ -23,7 +23,7 @@ var DynaSentry = /** @class */ (function () {
     function DynaSentry(config) {
         this.config = config;
         this.filterOut = null;
-        // private
+        // Private
         this.originalConsoles = {};
         this.sentry = config.Sentry;
         if (config.captureConsole && config.captureConsole.filterOut) {
@@ -52,7 +52,7 @@ var DynaSentry = /** @class */ (function () {
         var _b = captureConsole.consoleTypes, consoleTypes = _b === void 0 ? [] : _b, _c = captureConsole.stringifyData, stringifyData = _c === void 0 ? false : _c, setScope = captureConsole.setScope;
         consoleTypes
             .forEach(function (consoleType) {
-            _this.originalConsoles[consoleType] = console[consoleType];
+            _this.originalConsoles[consoleType] = console[consoleType]; // eslint-disable-line no-console
             console[consoleType] = function () {
                 var _a;
                 var args = [];
@@ -66,7 +66,7 @@ var DynaSentry = /** @class */ (function () {
                         title: (function () {
                             if (consoleContent.text)
                                 return consoleContent.text;
-                            return "Console Object: " + dynaStringify(args[0]);
+                            return "Console Object: ".concat(dynaStringify(args[0]));
                         })(),
                         level: (function () {
                             if (consoleType === EConsoleType.WARN)
@@ -75,7 +75,7 @@ var DynaSentry = /** @class */ (function () {
                         })(),
                         data: consoleContent.restArgs
                             .reduce(function (acc, arg, index) {
-                            acc["console-arg-" + (index + consoleContent.restArgIndex)] = arg;
+                            acc["console-arg-".concat(index + consoleContent.restArgIndex)] = arg;
                             return acc;
                         }, {}),
                         stringifyData: stringifyData,

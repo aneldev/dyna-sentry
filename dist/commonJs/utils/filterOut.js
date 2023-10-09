@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.FilterOut = void 0;
 var FilterOut = /** @class */ (function () {
     function FilterOut(config) {
         this.config = config;

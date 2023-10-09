@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.consoleSplit = function (consoleArgs) {
+exports.consoleSplit = void 0;
+var consoleSplit = function (consoleArgs) {
     var output = {
         text: '',
         restArgs: [],
@@ -24,4 +25,5 @@ exports.consoleSplit = function (consoleArgs) {
     });
     return output;
 };
+exports.consoleSplit = consoleSplit;
 //# sourceMappingURL=consoleSplit.js.map

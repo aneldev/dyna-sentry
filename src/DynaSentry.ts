@@ -1,13 +1,15 @@
 import * as Sentry from '@sentry/browser';
 import {dynaStringify} from "dyna-stringify";
 import {consoleSplit} from "./utils/consoleSplit";
-import {IFilterOut, FilterOut} from "./utils/FilterOut";
+import {
+  IFilterOut, FilterOut,
+} from "./utils/FilterOut";
 
 export interface IDynaSentryConfig {
   Sentry: any;
   captureConsole?: {
-    consoleTypes?: EConsoleType[];  // default: empty (none)
-    stringifyData?: boolean;        // default: false
+    consoleTypes?: EConsoleType[];  // Default is empty (none)
+    stringifyData?: boolean;        // Default is false
     filter?: (consoleType: EConsoleType, consoleArgs: any[], consoleText: string) => boolean;
     filterOut?: IFilterOut;
     setScope?: (scope: Sentry.Scope) => void;
@@ -58,7 +60,7 @@ export class DynaSentry {
       data?: any;
       stringifyData?: boolean;
       setScope?: (scope: Sentry.Scope) => void;
-    }
+    },
   ): void {
     this.sentry.withScope((scope: Sentry.Scope) => {
       if (setScope) setScope(scope);
@@ -75,14 +77,12 @@ export class DynaSentry {
     });
   }
 
-  // private
+  // Private
 
   private originalConsoles: { [consoleType: string]: any } = {};
 
   private initSniffConsoles(): void {
-    const {
-      captureConsole = {},
-    } = this.config;
+    const {captureConsole = {}} = this.config;
     const {
       consoleTypes = [],
       stringifyData = false,
@@ -90,8 +90,8 @@ export class DynaSentry {
     } = captureConsole;
     consoleTypes
       .forEach(consoleType => {
-        this.originalConsoles[consoleType] = console[consoleType];
-        console[consoleType] = (...args: any[]) => {
+        this.originalConsoles[consoleType] = console[consoleType];  // eslint-disable-line no-console
+        console[consoleType] = (...args: any[]) => {          // eslint-disable-line no-console
           this.originalConsoles[consoleType](...args);
           const consoleContent = consoleSplit(args);
           if (this.filter(consoleType, args, consoleContent.text)) {
@@ -118,12 +118,8 @@ export class DynaSentry {
   }
 
   private filter(consoleType: EConsoleType, args: any, consoleText: string): boolean {
-    const {
-      captureConsole = {},
-    } = this.config;
-    const {
-      filter,
-    } = captureConsole;
+    const {captureConsole = {}} = this.config;
+    const {filter} = captureConsole;
 
     return (
       (

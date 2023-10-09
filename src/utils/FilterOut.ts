@@ -1,6 +1,6 @@
 export interface IFilterOut {
   texts: string[];
-  caseSensitive?: boolean; // default: false
+  caseSensitive?: boolean; // Default: false
 }
 
 export class FilterOut {
@@ -14,7 +14,7 @@ export class FilterOut {
         : config.texts.map(t => t.toLowerCase());
   }
 
-  public filter(text: string): boolean { // returns true if the text is valid, is not filtered out and should be returned
+  public filter(text: string): boolean { // Returns true if the text is valid, is not filtered out and should be returned
     const {caseSensitive = false} = this.config;
     const userText =
       caseSensitive

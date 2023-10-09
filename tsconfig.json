@@ -17,7 +17,9 @@
     "target": "es5",
     "sourceMap": true,
     "jsx": "react",
-    "rootDirs": ["src"],
+    "rootDirs": [
+      "src"
+    ],
     "baseUrl": "src",
     "allowJs": false,
     "skipLibCheck": true,
@@ -29,16 +31,20 @@
     "noImplicitThis": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "types": [
-      "node"
+      "node",
+      "jest"
     ]
   },
   "files": [
-    "src/index.ts"
+    "./src/index.ts"
   ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ],
   "compileOnSave": false
 }

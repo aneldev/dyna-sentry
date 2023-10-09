@@ -1,24 +1,24 @@
 # dyna-sentry
 
-Puts some sugar onto Sentry.
+Enhances Sentry with additional features.
 
-Send issues easily with Data and special Scope from one method. 
+Easily send issues with data and a special scope using a single method.
 
-Convert the `console.error`, `console.warn` etc.. to Sentry Issues.
+Convert `console.error`, `console.warn`, etc., to Sentry Issues.
 
-# Setup to Convert consoles to issues
+## Setup to Convert Consoles to Issues
 
-This is only what is needed.
+This is all that is required:
 
 ```
-// Initialize the Sentry as you do
+// Initialize Sentry as you normally do
 import * as Sentry from '@sentry/browser';
 Sentry.init({
-  dsn: "https://<your sentry link>",
+  dsn: "https://<your Sentry link>",
 });
 
-// Instantiate the DynaSentry
-import {DynaSentry, EConsoleTypes} from "dyna-sentry";
+// Instantiate DynaSentry
+import { DynaSentry, EConsoleTypes } from "dyna-sentry";
 const dynaSentry = new DynaSentry({
     Sentry,
     captureConsole: {
@@ -29,19 +29,16 @@ const dynaSentry = new DynaSentry({
         ],
     },
 });
-
 ```
 
-Whenever your app `console.error` or `console.warn` an issue will be sent to entry.
+Whenever your app encounters `console.error` or `console.warn`, an issue will be sent to Sentry. The first text argument of the console is used as the title of the issue, and everything else is included as additional data.
 
-The first text arguments of the console are used as the Title of the issue and all the rest as Additional Data.
+## Filter Consoles
 
-# Filter consoles
-
-You can filter out consoles to not send them to Sentry. _This is needed when you send the Logs also, since Sentry is consoling the POST for each sent issue._
+You can filter out specific consoles to prevent them from being sent to Sentry. This is necessary when you are also logging the POST requests for each sent issue.
 
 ```
-import {DynaSentry, EConsoleTypes} from "dyna-sentry";
+import { DynaSentry, EConsoleTypes } from "dyna-sentry";
 const dynaSentry = new DynaSentry({
     Sentry,
     captureConsole: {
@@ -51,20 +48,19 @@ const dynaSentry = new DynaSentry({
             // LOG, INFO, DEBUG are also available
         ],
         filter: (consoleType, consoleArgs, consoleText) => {
-            if (consoleText.indeOf('invalid customer id') return false;
+            if (consoleText.indexOf('invalid customer id') !== -1) return false;
             return true;
         },
     },
 });
-
 ```
 
-# Filter out easily consoles with texts
+## Filter out Consoles with Text
 
-You can filter out consoles to not send them to Sentry. _This is needed when you send the Logs also, since Sentry is consoling the POST for each sent issue._
+You can easily filter out consoles that contain specific text and prevent them from being sent to Sentry. This is useful when you want to exclude certain messages from being logged.
 
 ```
-import {DynaSentry, EConsoleTypes} from "dyna-sentry";
+import { DynaSentry, EConsoleTypes } from "dyna-sentry";
 const dynaSentry = new DynaSentry({
     Sentry,
     captureConsole: {
@@ -81,50 +77,47 @@ const dynaSentry = new DynaSentry({
         },
     },
 });
-
 ```
 
-# Setup to Send issues manually
+## Setup to Send Issues Manually
 
 ```
-// Initialize the Sentry as you do
+// Initialize Sentry as you normally do
 import * as Sentry from '@sentry/browser';
 Sentry.init({
-  dsn: "https://<your sentry link>",
+  dsn: "https://<your Sentry link>",
 });
 
-// Instantiate the DynaSentry
-import {DynaSentry} from "dyna-sentry";
-const dynaSentry = new DynaSentry({Sentry});
+// Instantiate DynaSentry
+import { DynaSentry } from "dyna-sentry";
+const dynaSentry = new DynaSentry({ Sentry });
 
-// Wherever in your app send an issue to Sentry
+// Send an issue to Sentry from anywhere in your app
 dynaSentry.sendIssue({
     title: 'Cannot send email',
-    data: {email},
+    data: { email },
 });
 ```
-> Note: You can use `sendIssues` with or without `captureConsole` setup.
+> Note: You can use `sendIssue` with or without the `captureConsole` setup.
 
-# Send issue method `sendIssue`
+## Sending an Issue Using the `sendIssue` Method
 
-## Set Level (Severity)
+### Set Severity Level
 
-Default is Error.
-
-There is an enum to get this easily and type-safe.
+The default level is "Error." You can easily set it using an enum.
 
 ```
-import {ELevel} from "dyna-sentry";
+import { ELevel } from "dyna-sentry";
 
 dynaSentry.sendIssue({
     level: ELevel.WARN,
     title: 'Cannot send email',
-    data: {email},
+    data: { email },
     stringifyData: false,
 });
 ```
 
-The `ELevel` Enum
+The `ELevel` Enum:
 
 ```
 enum ELevel {
@@ -138,42 +131,38 @@ enum ELevel {
 }
 ```
 
-## Send a issue's data stringified
+### Send Issue Data as a String
 
-When you stringify the data, you can see the whole depth of the object on Sentry.
+When you stringify the data, you can see the entire depth of the object on Sentry.
 
-> **Tip:** The data stringify of the `sendIssue` can process objects with circular references with out exceptions, thanks to [dyna-stringify](https://github.com/aneldev/).
+Tip: The data stringify of the `sendIssue` can process objects with circular references without exceptions, thanks to dyna-stringify.
 
 ```
 dynaSentry.sendIssue({
     title: 'Cannot send email',
-    data: {email},
+    data: { email },
     stringifyData: true,
 });
 ```
 
-## Set Scope
+### Set Scope
 
-Sentry offers a lot of methods to define the Scope of the issue.  
-
-`sendIssue` offers a callback to define anything Sentry offers.
+Sentry offers numerous methods to define the scope of the issue. sendIssue provides a callback to define anything that Sentry offers.
 
 ```
 dynaSentry.sendIssue({
     title: 'Cannot send email',
-    data: {email},
+    data: { email },
     stringifyData: false,
     setScope: scope => {
-        scope.setUser({id: "204523"});
+        scope.setUser({ id: "204523" });
         scope.setTag('id24534', 'Network layer');
     },
 });
 ```
-## Sentry's Scope methods
+## Sentry's Scope Methods
 
-There is no a clear a API for all methods of Sentry's scope, below interface Scope. Taken from @sentry/types/dist/scope.d.ts.
-
-If you write in typescript you can inspect all methods and types. If not, search for each method at [Sentry's API](https://docs.sentry.io/enriching-error-data/scopes/?platform=javascript)
+There is no clear API for all of Sentry's scope methods. Below is an interface for the scope, taken from @sentry/types/dist/scope.d.ts. If you are using TypeScript, you can inspect all methods and types. If not, you can search for each method in Sentry's API.
 
 ``` 
 export interface Scope {
@@ -258,7 +247,7 @@ export interface Scope {
 
 ## DynaSentry config
 
-Config for `new DynaSentry(config: IDynaSentryConfig)`.
+Configuration for new DynaSentry(config: IDynaSentryConfig).
 
 ```
 IDynaSentryConfig {
